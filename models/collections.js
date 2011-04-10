@@ -7,6 +7,8 @@ if (typeof exports !== 'undefined') {
 }
 
 Collections.DelayedCollection = Backbone.Collection.extend({
+	// realistically, this fetch call would go out to some external endpoint (database, cache, service, etc)
+	// for this demo, it just uses setTimeout to simulate an asynchronous request that takes some amount of time
 	fetch: function() {
 		var self = this;
 		this.each(function(model) {
