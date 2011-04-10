@@ -143,6 +143,8 @@ Example usage:
     // the same code will work server side too! In server.js:
     dust.render('foo', {}, function(err, out) { console.log(err ? err : out); }); // output: 'Hello world!'
 
+In addition to this watcher utility, I highly recommend using [node-supervisor](https://github.com/isaacs/node-supervisor) so that your node.js instance automatically redeploys any time you make a code change to it. Sure beats having to hit `ctrl+c, up-arrow, enter` each time you change server.js.
+
 # License
 
 (The MIT License)
