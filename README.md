@@ -4,9 +4,18 @@ This project shows an example of how to use [node.js](http://nodejs.org/) to:
 
 * Share [backbone.js](http://documentcloud.github.com/backbone/) models between server and client.
 * Share [dust](http://akdubya.github.com/dustjs/) templates between server and client.
-* Split up rendering between server and client. That is, an attempt is first made to render server-side any data that is available; the rest of the rendering is deferred to the client-side.
+* Split up rendering between server and client. 
+
+The general idea is to request all the data necessary for a page asynchronously and start rendering server-side without waiting for the data to come back. Whatever data does make it back in time is included in the response to the browser; the rest is *pushed* via [socket.io](http://socket.io/) to the browser and rendered client-side.
 
 Currently, this is more of a code sample than a re-usable library, but I'll work on turning it into an npm module soon.
+
+# Why would I want this?
+
+* Render pages **fast**. As soon as data is available, it will start showing up in the user's browser (lilac even does early flush). This will vastly improve actual and perceived page load times.
+* Keep your code [DRY](http://en.wikipedia.org/wiki/Don%27t_repeat_yourself) by sharing the same model and template code between server and client
+* Supports client-side rendering: keeping your templates in JavaScript files allows you to store them on CDN's (faster performance, less load for your servers), lets the user's browser cache them, and can be re-used for re-drawing parts of the page in response to user actions or AJAX calls.
+* Supports server-side rendering: the same templates can be rendered server side to support crawlers and users without JavaScript.
 
 # Install
 
@@ -15,7 +24,7 @@ Currently, this is more of a code sample than a re-usable library, but I'll work
 1. Run: `node server.js`
 1. Go to [http://localhost:8124](http://localhost:8124/)
 
-The page that shows up isn't very exciting, but how it got there is: part of it was rendered server-side and part of it was rendered client side, depending on when the data was available. Better still, the rendering was done using the *same* [dust](http://akdubya.github.com/dustjs/) templates. Now, disable JavaScript and reload the page (or just go to [http://localhost:8124/?noScript=true](http://localhost:8124?noScript=true)). The page still loads and looks the same, but this time, all the content was rendered server-side. 
+The page that shows up isn't very exciting, but how it got there is: part of it was rendered server-side and part of it was rendered client side, depending on when the data was available. Better still, the rendering was done using the *same* [dust](http://akdubya.github.com/dustjs/) templates. Now, disable JavaScript and reload the page (or just go to [http://localhost:8124/?noScript=true](http://localhost:8124?noScript=true)). The page still loads and looks the same, but this time, all the content was rendered server-side.  
 
 # How does it work?
 
@@ -101,9 +110,13 @@ The client, in turn, sits and listens for these remaining models and uses dust t
       }
     });	
 
-# Dust utilities
+# The fine details
 
-I've included a utility class to make it easier to work with [dust](http://akdubya.github.com/dustjs/) templates server-side and client-side. Under the lib folder, the `watcher.js` file exports a function called watch:
+TODO
+
+# Dust watcher
+
+I've included a utility class to make it easier to work with [dust](http://akdubya.github.com/dustjs/) templates server-side and client-side by auto-compiling and packaging your dust templates every time you make a change. Under the lib folder, the `watcher.js` file exports a function called watch:
 
     exports.watch = function(dust, templateDir, publicDir, templateExtension)
 
