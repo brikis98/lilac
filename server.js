@@ -3,7 +3,7 @@ var dust = require('dust');
 var Models = require('./models/models');
 var Collections = require('./models/collections');
 var lilac = require('./lib/lilac');
-require('./dust-lib/watcher').watch(dust);
+require('./lib/watcher').watch(dust, './templates', './public/templates', '.jst');
 
 var app = express.createServer();
 app.use(express.cookieParser());

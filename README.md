@@ -21,6 +21,7 @@ The page that shows up isn't very exciting, but how it got there is: part of it 
 
 ## Step 1: the server
     // server.js
+    
     app.get('/', function(req, res, next) {
       var collection = new Collections.DelayedCollection([
         new Models.DelayedModel(), 
@@ -36,6 +37,7 @@ The page that shows up isn't very exciting, but how it got there is: part of it 
 The first step is to create a number of [backbone](http://documentcloud.github.com/backbone/) models and put them into a backbone collection. Each model represents some sort of data we need to render the page, typically retrieved from an external endpoint (database, cache, web service). For this example app, the remote calls are demoed simply by calling `setTimeout` for the amount of time specified in the model's `delay' property. These models will also specify various rendering parameters, such as which template to use and where they can be rendered (server-only, client-only, both). Calling collection.fetch() fires off asynchronous requests to fetch the data for all the models (or, in our case, calls setTimeout). However, we don't wait for any of these requests to complete: instead, we call `lilac.render` to start rendering the `index` template immediately. 
 
     // templates/index.jst
+    
     <table id="collections">
       <tr>
         <th>Delay</th>
@@ -50,6 +52,7 @@ The first step is to create a number of [backbone](http://documentcloud.github.c
 The `index` template (lilac/templates/index.jst) uses [dust](http://akdubya.github.com/dustjs/) syntax to loop over our collection and call `renderIfReady` on it. The `renderIfReady` method is a lilac method added to the dust context which does the following (simplified for easier reading):
 
     // lib/lilac.js
+    
     if (model.get('isFetched')) {	
       renderFetchedModel(chunk, model);
     } else if (context.get('noScript')) {
@@ -69,6 +72,7 @@ This may look a bit complicated, but it boils down to this:
 The server renders as much of the data as is available and returns a partially complete page to the client. At this point, the client's browser uses [nowjs](http://nowjs.com/) to open a socket back to the server (using whatever 'socket' technology is available in the current browser) and requests the remaining data (identified in the cookie via collection.id):
 
     // public/javascripts/lilac.js
+    
     now.ready(function() {
       now.getModelsToRender($.cookie('collection.id'), render);
     });
@@ -76,6 +80,7 @@ The server renders as much of the data as is available and returns a partially c
 This request is handled by lilac, which looks through goes through each of the unrendered models and pushes it to the client as soon as the data is available:
 
     // lib/lilac.js
+    
     if (model.get('isRendered')) {
       return;
     } else if (model.get('isFetched')) {
@@ -87,6 +92,7 @@ This request is handled by lilac, which looks through goes through each of the u
 The client, in turn, sits and listens for these remaining models and uses dust to render each one in the browser when it receives the data from the server:
 
     // public/javascripts/lilac.js
+    
     dust.render(model.template, model, function(err, out) {
       if (err) {
         console.log(err); 
@@ -94,3 +100,34 @@ The client, in turn, sits and listens for these remaining models and uses dust t
         $('#collections').append(out);
       }
     });	
+
+# Dust utilities
+
+The code includes a nice utility to make it easier to work with [node.js](http://nodejs.org/) and [dust](http://akdubya.github.com/dustjs/). Under the lib folder, the `watcher.js` file exports a function called watch:
+
+    exports.watch = function(dust, templateDir, publicDir, templateExtension)
+
+This function watches `templateDir` for changes. Each time a file with extension `templateExtension` changes, the watcher will use the provided `dust` instance to recompile the template, making the new version instantly accessible in your running node.js server for server-side rendering. The watcher class also puts a copy of the compiled template into `publicDir` so that it can be downloaded by the browser for client-side rendering.
+
+Example usage:
+
+    // server.js:
+    var dust = require('dust');
+    require('./lib/watcher').watch(dust, './templates', './public/templates', '.jst');
+
+    // create ./templates/foo.jst
+    Hello world!
+
+    // ./public/templates/foo.js is automatically generated
+    (function(){dust.register("foo",body_0);function body_0(chk,ctx){return chk.write("Hello world!");}return body_0;})();
+
+    // now you can render this template server-side:
+    <script type="text/javascript" src="templates/foo.js"></script>
+    <script type="text/javascript">
+      dust.render('foo', {}, function(err, out) { console.log(err ? err : out); }); // will output 'Hello world!'  
+    </script>
+
+    // the same code will work server side too! In server.js:
+    dust.render('foo', {}, function(err, out) { console.log(err ? err : out); }); // will output 'Hello world!'
+
+
