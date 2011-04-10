@@ -2,14 +2,14 @@ var express = require('express');
 var dust = require('dust');
 var Models = require('./models/models');
 var Collections = require('./models/collections');
-var serverRender = require('./dust-lib/serverRender');
+var lilac = require('./lib/lilac');
 require('./dust-lib/watcher').watch(dust);
 
 var app = express.createServer();
 app.use(express.cookieParser());
 app.listen(8124);
 
-serverRender.initialize(app);
+lilac.initialize(app);
 
 // Static resources
 app.get('/public/*.(js|css)', function(req, res, next) {
@@ -24,7 +24,8 @@ app.get('/', function(req, res, next) {
 		new Models.DelayedModel({delay: 500}), 		
 		new Models.DelayedModel({delay: 1000})
 	]);	
-	serverRender.render(req, res, collection);
+	collection.fetch();
+	lilac.render(req, res, collection, 'index');
 });
 
 
