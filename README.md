@@ -103,7 +103,7 @@ The client, in turn, sits and listens for these remaining models and uses dust t
 
 # Dust utilities
 
-The code includes a nice utility to make it easier to work with [node.js](http://nodejs.org/) and [dust](http://akdubya.github.com/dustjs/). Under the lib folder, the `watcher.js` file exports a function called watch:
+I've included a utility class to make it easier to work with [dust](http://akdubya.github.com/dustjs/) templates server-side and client-side. Under the lib folder, the `watcher.js` file exports a function called watch:
 
     exports.watch = function(dust, templateDir, publicDir, templateExtension)
 
@@ -121,13 +121,13 @@ Example usage:
     // ./public/templates/foo.js is automatically generated
     (function(){dust.register("foo",body_0);function body_0(chk,ctx){return chk.write("Hello world!");}return body_0;})();
 
-    // now you can render this template server-side:
+    // now you can render this template client-side:
     <script type="text/javascript" src="templates/foo.js"></script>
     <script type="text/javascript">
-      dust.render('foo', {}, function(err, out) { console.log(err ? err : out); }); // will output 'Hello world!'  
+      dust.render('foo', {}, function(err, out) { console.log(err ? err : out); }); // output: 'Hello world!'  
     </script>
 
     // the same code will work server side too! In server.js:
-    dust.render('foo', {}, function(err, out) { console.log(err ? err : out); }); // will output 'Hello world!'
+    dust.render('foo', {}, function(err, out) { console.log(err ? err : out); }); // output: 'Hello world!'
 
 
