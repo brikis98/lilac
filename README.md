@@ -20,9 +20,7 @@ The page that shows up isn't very exciting, but how it got there is: part of it 
 # How does it work?
 
 ## Step 1: the server
-
-Start by looking at `server.sj`:
-
+    // server.js
     app.get('/', function(req, res, next) {
       var collection = new Collections.DelayedCollection([
         new Models.DelayedModel(), 
@@ -35,8 +33,9 @@ Start by looking at `server.sj`:
       lilac.render(req, res, collection, 'index');
     });
 
-The first step is to create a number of [backbone](http://documentcloud.github.com/backbone/) models and put them into a backbone collection. Each model represents some sort of data we need to render the page, typically retrieved from an external endpoint (database, cache, web service). For this demo app, remote calls that take time are replaced with a simple `setTimeout` call using the model's delay property. These models will also specify various rendering parameters, such as which template to use and where they can be rendered (server-only, client-only, both). Calling collection.fetch() fires off asynchronous requests to actually fetch the data for all the models (or, in our case, calls setTimeout). However, we don't wait for any of these requests to complete: instead, we call `lilac.render` to start rendering the `index` template immediately. 
+The first step is to create a number of [backbone](http://documentcloud.github.com/backbone/) models and put them into a backbone collection. Each model represents some sort of data we need to render the page, typically retrieved from an external endpoint (database, cache, web service). For this example app, the remote calls are demoed simply by calling `setTimeout` for the amount of time specified in the model's `delay' property. These models will also specify various rendering parameters, such as which template to use and where they can be rendered (server-only, client-only, both). Calling collection.fetch() fires off asynchronous requests to fetch the data for all the models (or, in our case, calls setTimeout). However, we don't wait for any of these requests to complete: instead, we call `lilac.render` to start rendering the `index` template immediately. 
 
+    // templates/index.jst
     <table id="collections">
       <tr>
         <th>Delay</th>
@@ -50,6 +49,7 @@ The first step is to create a number of [backbone](http://documentcloud.github.c
 
 The `index` template (lilac/templates/index.jst) uses [dust](http://akdubya.github.com/dustjs/) syntax to loop over our collection and call `renderIfReady` on it. The `renderIfReady` method is a lilac method added to the dust context which does the following (simplified for easier reading):
 
+    // lib/lilac.js
     if (model.get('isFetched')) {	
       renderFetchedModel(chunk, model);
     } else if (context.get('noScript')) {
@@ -68,12 +68,14 @@ This may look a bit complicated, but it boils down to this:
 
 The server renders as much of the data as is available and returns a partially complete page to the client. At this point, the client's browser uses [nowjs](http://nowjs.com/) to open a socket back to the server (using whatever 'socket' technology is available in the current browser) and requests the remaining data (identified in the cookie via collection.id):
 
+    // public/javascripts/lilac.js
     now.ready(function() {
       now.getModelsToRender($.cookie('collection.id'), render);
     });
     
 This request is handled by lilac, which looks through goes through each of the unrendered models and pushes it to the client as soon as the data is available:
 
+    // lib/lilac.js
     if (model.get('isRendered')) {
       return;
     } else if (model.get('isFetched')) {
@@ -84,6 +86,7 @@ This request is handled by lilac, which looks through goes through each of the u
 
 The client, in turn, sits and listens for these remaining models and uses dust to render each one in the browser when it receives the data from the server:
 
+    // public/javascripts/lilac.js
     dust.render(model.template, model, function(err, out) {
       if (err) {
         console.log(err); 
