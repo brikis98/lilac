@@ -38,9 +38,9 @@ exports.getCollectionFromCache = function(collectionId) {
 }
 
 function renderChunk(chunk, model, context) {
-	if (model.get('isFetched')) {	
+	if (model.get('isFetched') && (model.get('allowRendering') != 'client-only' || context.get('noScript'))) {	
 		renderFetchedModel(chunk, model);
-	} else if (model.get('serverOnly') || context.get('noScript')) {
+	} else if (!model.get('isFetched') && (model.get('allowRendering') == 'server-only' || context.get('noScript'))) {
 		model.bind('change', _.once(function() { renderFetchedModel(chunk, model); }));
 	} else {
 		chunk.end(0);

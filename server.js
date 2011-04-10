@@ -19,7 +19,8 @@ app.get('/public/*.(js|css)', function(req, res, next) {
 app.get('/', function(req, res, next) {
 	var collection = new Collections.DelayedCollection([
 		new Models.DelayedModel(), 
-		new Models.DelayedModel({delay: 200, serverOnly: true}), 		
+		new Models.DelayedModel({allowRendering: 'client-only'}),
+		new Models.DelayedModel({delay: 200, allowRendering: 'server-only'}), 		
 		new Models.DelayedModel({delay: 500}), 		
 		new Models.DelayedModel({delay: 1000})
 	]);	
