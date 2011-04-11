@@ -157,7 +157,7 @@ Note: these properties will probably be namespaced in the future to avoid collis
 
 The `index.jst` template detects users without JavaScript and immediately refreshes the page, adding a noScript=true parameter. Lilac detects this parameter and forces all rendering to be done server-side. 
 
-# Client-side rendering
+## Client-side rendering
 
 Currently, lilac just caches all collections in an in-memory JavaScript object with sequential ids.
 
@@ -189,11 +189,42 @@ And the id is just used to retrieve the corresponding collection from the cache:
       return collectionCache[collectionId];
     }  
 
-In real-world usage, you would want to override lilac's `cacheCollection` and `getCollectionFromCache` methods to:
+**Warning**: In real-world usage, you would want to override lilac's `cacheCollection` and `getCollectionFromCache` methods to:
 
 * Generate your own ids
 * Ensure clients can only access the collections that belong to them
 * Store the data externally, e.g. [redis](https://github.com/mranney/node_redis)
+
+## Early flush
+
+While rendering on the server-side, lilac takes every opportunity to start sending data back to the user's browser:
+
+    function render(template, context, res) {
+      var stream = dust.stream(template, context);
+      stream.on('data', function(data) { res.write(data); });
+      stream.on('end', function() { res.end(); });
+      stream.on('error', function(err) { res.end(err); });
+    }
+    
+Any time some of the template is available to render, lilac will push it to the user's browser, which can significantly improve perceived load time.
+
+## User experience
+
+It's worth mentioning that rendering client-side and having data suddenly pop into the page and move things around can be a pretty jarring experience for the user. For real-world usage, you may want to tweak the client-side rendering method to buffer the rendered data until it's all available and then fade it in smoothly.
+    
+    // public/javascripts/lilac.js
+    
+    function render(model) {
+      if (!model) { return; }
+      dust.render(model.template, model, function(err, out) {
+        if (err) {
+          console.log(err); 
+        } else {
+          // You may want to buffer this data and only render it at the very end
+          $('#collections').append(out);
+        }
+      }); 
+    }  
 
 # TODO
 
@@ -204,6 +235,7 @@ In real-world usage, you would want to override lilac's `cacheCollection` and `g
 1. Put the lilac model data into its own namespace so it doesn't collide with user data in the model.
 1. Add `allowRendering` value for data that only renders client-side (e.g. ads) and doesn't need to render server side, even if JavaScript is disabled.
 1. Modularize the JavaScript detection so users of lilac can specify how to detect it (e.g. noscript with meta-refresh) and how to track it (e.g. session, cookies, URL param).    
+1. Offer a way to categorize data into groups: 'above the fold' (fetch data and render immediately), 'just below the fold' (fetch data, but don't render until the user scrolls) and 'way below the fold' (don't fetch or render until the user scrolls enough that this is 'just below the fold')
 
 # Dust watcher
 
