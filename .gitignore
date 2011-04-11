@@ -32,3 +32,8 @@
 ehthumbs.db
 Icon
 Thumbs.db
+
+# Eclipse files #
+######################
+.project
+.tmp*

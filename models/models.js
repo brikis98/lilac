@@ -12,7 +12,6 @@ Models.DelayedModel = Backbone.Model.extend({
 		isRendered: false,
 		template: 'delayedModel',
 		delay: 0,
-		serverOnly: false,
 		allowRendering: 'both'			// valid options: client-only, server-only, both
 	}
 });

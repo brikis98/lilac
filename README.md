@@ -112,7 +112,98 @@ The client, in turn, sits and listens for these remaining models and uses dust t
 
 # The fine details
 
-TODO
+## Initialize the server
+
+    // Create your server using express, http or the other standard modules
+    var app = express.createServer();
+
+    // pull in the lilac module
+    var lilac = require('./lib/lilac');
+    
+    // call lilac's initialize method to tell it to start accepting nowjs requests for models
+    lilac.initialize(app);    
+
+## Backbone models
+
+In order to share backbone.js models and collections between the client and server, the `models.js` and `collections.js` files add some [CommonJS](http://www.commonjs.org/) module code at the top:
+
+    // models/models.js
+    
+    Models = {};
+    if (typeof exports !== 'undefined') {
+      Models = exports;
+
+      _ = require('underscore')._;
+      Backbone = require('backbone');
+    } 
+
+The example app uses instances of `DelayedModel` backbone models. In the future, lilac should be able to use any backbone model that exposes the following properties:
+
+* `isFetched`: specifies if the data for the model is available for rendering.
+* `isRendered`: specifies if the model has been rendered already.
+* `template`: the dust template to use for rendering.
+* `delay`: for the demo app, time-consuming calls to external endpoints (database, cache, service) are simulated by a `setTimeout` call for `delay` milliseconds.
+* `allowRendering`: specifies if lilac should render this model `server-side`, `client-side` or `both`.
+
+Note: these properties will probably be namespaced in the future to avoid collisions.
+
+## JavaScript detection
+
+    // templates/index.jst
+    
+    <noscript>
+      <meta http-equiv="refresh" content="0;url=/?noScript=true"/>
+    </noscript>     
+
+The `index.jst` template detects users without JavaScript and immediately refreshes the page, adding a noScript=true parameter. Lilac detects this parameter and forces all rendering to be done server-side. 
+
+# Client-side rendering
+
+Currently, lilac just caches all collections in an in-memory JavaScript object with sequential ids.
+
+    // lib/lilac.js
+    
+    exports.cacheCollection = function(req, res, collection) {
+      var collectionId = _.size(collectionCache);
+      collectionCache[collectionId] = collection;
+      return collectionId;
+    }
+    
+The ids are added to a cookie:
+
+    // lib/lilac.js
+    
+    res.cookie('collection.id', collectionId, {httpOnly: false});
+    
+The client uses nowjs to request unrendered models using this id:
+
+    // public/javascripts/lilac.js
+    
+    now.getModelsToRender($.cookie('collection.id'), render);     
+  
+And the id is just used to retrieve the corresponding collection from the cache:
+
+    // lib/lilac.js
+        
+    exports.getCollectionFromCache = function(collectionId) {
+      return collectionCache[collectionId];
+    }  
+
+In real-world usage, you would want to override lilac's `cacheCollection` and `getCollectionFromCache` methods to:
+
+* Generate your own ids
+* Ensure clients can only access the collections that belong to them
+* Store the data externally, e.g. [redis](https://github.com/mranney/node_redis)
+
+# TODO
+
+1. If everything rendered on the server-side, make sure the client doesn't open up an unnecessary socket to request data.
+1. Modularize the collection caching code so users of lilac can specify their own. 
+1. Allow the base dust context to be passed into lilac as a parameter during rendering and/or initialization.
+1. Wrap the client-side code with backbone views and show how to re-use the templates client side after some AJAX action.
+1. Put the lilac model data into its own namespace so it doesn't collide with user data in the model.
+1. Add `allowRendering` value for data that only renders client-side (e.g. ads) and doesn't need to render server side, even if JavaScript is disabled.
+1. Modularize the JavaScript detection so users of lilac can specify how to detect it (e.g. noscript with meta-refresh) and how to track it (e.g. session, cookies, URL param).    
 
 # Dust watcher
 
