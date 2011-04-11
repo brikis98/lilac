@@ -157,7 +157,7 @@ Note: these properties will probably be namespaced in the future to avoid collis
 
 The `index.jst` template detects users without JavaScript and immediately refreshes the page, adding a noScript=true parameter. Lilac detects this parameter and forces all rendering to be done server-side. 
 
-## Client-side rendering
+## Caching and client-side rendering
 
 Currently, lilac just caches all collections in an in-memory JavaScript object with sequential ids.
 
