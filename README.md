@@ -12,14 +12,15 @@ Currently, this is more of a code sample than a re-usable library, but I'll work
 
 # Why would I want this?
 
-* Render pages **fast**. As soon as data is available, it will start showing up in the user's browser (lilac even does early flush). This will vastly improve actual and perceived page load times.
-* Keep your code [DRY](http://en.wikipedia.org/wiki/Don%27t_repeat_yourself) by sharing the same model and template code between server and client
-* Supports client-side rendering: keeping your templates in JavaScript files allows you to store them on CDN's (faster performance, less load for your servers), lets the user's browser cache them, and can be re-used for re-drawing parts of the page in response to user actions or AJAX calls.
+* Render pages **fast**. As soon as data is available, it will start showing up in the user's browser. Lilac uses async rendering, early flush and client side rendering to vastly improve actual and perceived page load times.
+* Keep your code [DRY](http://en.wikipedia.org/wiki/Don%27t_repeat_yourself) by sharing the same model and template code between server and client.
+* Supports client-side rendering: keeping your templates in JavaScript files allows you to store them on CDN's (lower latency, less load for your servers), lets the user's browser cache them, and can be re-used for re-drawing parts of the page in response to user actions or AJAX calls.
 * Supports server-side rendering: the same templates can be rendered server side to support crawlers and users without JavaScript.
 
 # Install
 
-1. Install [node.js](http://nodejs.org/), [backbone.js](http://documentcloud.github.com/backbone/), [dust](http://akdubya.github.com/dustjs/), [underscore](http://documentcloud.github.com/underscore/), [express](http://expressjs.com/) and [nowjs](http://nowjs.com/).
+1. Install [node.js](http://nodejs.org/) 
+1. Install these node modules: [backbone.js](http://documentcloud.github.com/backbone/), [dust](http://akdubya.github.com/dustjs/), [underscore](http://documentcloud.github.com/underscore/), [express](http://expressjs.com/), [watch-tree](https://github.com/tafa/node-watch-tree) and [nowjs](http://nowjs.com/). This command should do it: `npm install backbone dust underscore express watch-tree now`
 1. Download and extract the source code for this project
 1. Run: `node server.js`
 1. Go to [http://localhost:8124](http://localhost:8124/)
@@ -78,7 +79,7 @@ This may look a bit complicated, but it boils down to this:
 
 ## Step 2: the client
 
-The server renders as much of the data as is available and returns a partially complete page to the client. At this point, the client's browser uses [nowjs](http://nowjs.com/) to open a socket back to the server (using whatever 'socket' technology is available in the current browser) and requests the remaining data (identified in the cookie via collection.id):
+The server renders as much of the data as is available and returns a partially complete page to the client. At this point, the client's browser uses [nowjs](http://nowjs.com/) to open a socket back to the server - using whatever 'socket' technology is available in the current browser - and requests the remaining data (identified in the cookie via collection.id):
 
     // public/javascripts/lilac.js
     
@@ -155,7 +156,11 @@ Note: these properties will probably be namespaced in the future to avoid collis
       <meta http-equiv="refresh" content="0;url=/?noScript=true"/>
     </noscript>     
 
-The `index.jst` template detects users without JavaScript and immediately refreshes the page, adding a noScript=true parameter. Lilac detects this parameter and forces all rendering to be done server-side. 
+The `index.jst` template detects users without JavaScript and immediately refreshes the page, adding a noScript=true parameter. Lilac detects this parameter and forces all rendering to be done server-side. Depending on your needs, there are alternative schemes can be used, such as:
+
+1. Including the same meta refresh tag as above, but without any noscript tags around it and a longer delay. You then also add some JS code that disables this meta tag before it has a chance to act.
+1. If a user shows up to your site and has no cookies, have the server write a session cookie and return an initial page with a meta refresh tag and some JS code to write a second cookie. Then, if a request comes in that does have a session cookie but not the second cookie, you can assume they don't have JS available in the browser.
+1. The same code as above, but also some additional JS code on each page that will detect if JS suddenly *is* available and react accordingly. Useful so a user doesn't become permanently stuck in noScript mode if they temporarily had JS disabled, your site had a bug, etc. 
 
 ## Caching and client-side rendering
 
