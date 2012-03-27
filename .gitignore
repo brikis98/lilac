@@ -37,3 +37,7 @@ Thumbs.db
 ######################
 .project
 .tmp*
+
+# Node Package Manager #
+######################
+node_modules
