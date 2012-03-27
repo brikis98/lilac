@@ -20,8 +20,8 @@ Currently, this is more of a code sample than a re-usable library, but I'll work
 # Install
 
 1. Install [node.js](http://nodejs.org/) 
-1. Install these node modules: [backbone.js](http://documentcloud.github.com/backbone/), [dust](http://akdubya.github.com/dustjs/), [underscore](http://documentcloud.github.com/underscore/), [express](http://expressjs.com/), [watch-tree](https://github.com/tafa/node-watch-tree) and [nowjs](http://nowjs.com/). This command should do it: `npm install backbone dust underscore express watch-tree now`
-1. Download and extract the source code for this project
+1. Run: `git clone https://github.com/brikis98/lilac.git`
+1. Run: `npm install`
 1. Run: `node server.js`
 1. Go to [http://localhost:8124](http://localhost:8124/)
 
