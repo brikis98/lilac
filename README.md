@@ -1,3 +1,7 @@
+# Update
+
+This project was an experiment from around 2011 and is no longer maintained.
+
 # Overview
 
 This project shows an example of how to use [node.js](http://nodejs.org/) to:
