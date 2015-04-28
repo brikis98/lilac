@@ -1,6 +1,6 @@
 # Update
 
-This project was an experiment from around 2011 and is no longer maintained.
+This project was an experiment from around 2011 and is **no longer maintained**. Check out [rendr](https://github.com/rendrjs/rendr), [meteor](http://isomorphic.net/library/meteor), [derby](http://isomorphic.net/library/derby), and [isomorphic.net](http://isomorphic.net/) for better alternatives.
 
 # Overview
 
